@@ -120,9 +120,14 @@ const roleplay = {
   },
 
   subirStatsElegir(dragon, scene, callback) {
-  const { width: W, height: H } = scene.sys.game.config;
+    const { width: W, height: H } = scene.sys.game.config;
 
-  const stats = ["vida", "mordisco", "aliento", "armadura", "velocidad"];
+    const stats = ["vida", "mordisco", "aliento", "armadura", "velocidad"];
+    const rarezaBoost = (rarezaes => {
+      const tabla = typeof rarezas !== "undefined" ? rarezas : null;
+      const boost = tabla?.[rarezaes]?.boost || 0;
+      return 1 + boost;
+    })(dragon.rareza);
   const nombres = {
     vida: "❤️ Vida (+5)",
     mordisco: "🗡️ Mordisco",
@@ -238,15 +243,18 @@ fontSize: "26px",
     btnMas.on("pointerdown", () => {
       if (this.puntosDisponibles <= 0) return;
 
+      const deltaBase = (s === "vida") ? 5 : 1;
+      const delta = Math.max(1, Math.round(deltaBase * rarezaBoost));
+
       if (s === "vida") {
-        dragon.vidaMax += 5;
+        dragon.vidaMax += delta;
         statTexts[s].setText(`${nombres[s]}: ${dragon.vidaMax}`);
       } else {
-        dragon[s]++;
+        dragon[s] += delta;
         statTexts[s].setText(`${nombres[s]}: ${dragon[s]}`);
       }
 
-      this.historial.push({ stat: s, tipo: "mas" });
+      this.historial.push({ stat: s, tipo: "mas", delta });
       this.puntosDisponibles--;
       actualizarContador();
 
@@ -264,12 +272,14 @@ fontSize: "26px",
       const idx = this.historial.findIndex(h => h.stat === s && h.tipo === "mas");
       if (idx === -1) return;
 
+      const { delta } = this.historial[idx];
+
       if (s === "vida") {
-        dragon.vidaMax -= 5;
+        dragon.vidaMax -= delta;
         dragon.vida = Math.min(dragon.vida, dragon.vidaMax);
         statTexts[s].setText(`${nombres[s]}: ${dragon.vidaMax}`);
       } else {
-        dragon[s]--;
+        dragon[s] -= delta;
         statTexts[s].setText(`${nombres[s]}: ${dragon[s]}`);
       }
 
@@ -426,20 +436,27 @@ function getBonusesForDragon(dragon){
     dragon.nivel = Math.max(1, nivel);
     dragon.exp = 0;
 
-    // 🆙 Nueva lógica: el dragón gana 2 stats aleatorios por nivel
-for (let i = 1; i < dragon.nivel; i++) {
-  let stats = ["vida","mordisco","aliento","armadura","velocidad"];
+    // 🆙 Nueva lógica: el dragón gana 2 stats aleatorios por nivel (escalados por rareza)
+    const rarezaMult = (() => {
+      const boost = (typeof rarezas !== "undefined" && rarezas?.[dragon.rareza]?.boost) || 0;
+      return 1 + boost;
+    })();
 
-  for (let j = 0; j < 2; j++) {
-    const elegido = stats[Math.floor(Math.random() * stats.length)];
+    for (let i = 1; i < dragon.nivel; i++) {
+      let stats = ["vida","mordisco","aliento","armadura","velocidad"];
 
-    if (elegido === "vida") {
-      dragon.vidaMax += 5;
-    } else {
-      dragon[elegido] += 1;
+      for (let j = 0; j < 2; j++) {
+        const elegido = stats[Math.floor(Math.random() * stats.length)];
+        const baseDelta = elegido === "vida" ? 5 : 1;
+        const delta = Math.max(1, Math.round(baseDelta * rarezaMult));
+
+        if (elegido === "vida") {
+          dragon.vidaMax += delta;
+        } else {
+          dragon[elegido] += delta;
+        }
+      }
     }
-  }
-}
 
     this.aplicarBoostPrincipal(dragon);
     dragon.vida = Math.min(vidaActual, dragon.vidaMax);
