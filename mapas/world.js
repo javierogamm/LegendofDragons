@@ -208,18 +208,23 @@ window.sceneWorld = this;
     normalizarDragon(dragon1);
   }
     
-    const offsetX = 200; 
+    const offsetX = 200;
     const W = this.sys.game.config.width;
     const H = this.sys.game.config.height;
 
-    this.worldLayer = this.add.layer(); 
-    this.uiLayer    = this.add.layer(); 
+    this.worldLayer = this.add.layer();
+    this.uiLayer    = this.add.layer();
 
     const bg = this.add.image(offsetX, 0, "world").setOrigin(0);
     this.worldLayer.add(bg);
 
     const worldW = bg.width;
     const worldH = bg.height;
+
+    // Guardar dimensiones y offset para cálculos de geolocalización
+    this.worldOffsetX = offsetX;
+    this.worldPixelWidth = worldW;
+    this.worldPixelHeight = worldH;
 // === ☁️ NUBES FIJAS SOBRE EL MAPA (dirección global, cambio suave y regeneración) ===
 this.nubes = [];
 const texturasNubes = ["nube1", "nube2", "nube3", "nube4", "nube5", "nube6", "nube7"];
@@ -1462,11 +1467,47 @@ this.uiLayer.add(btnRegenIslas);
     const isla = Phaser.Utils.Array.GetRandom(listaIslas);
     const fishKey = this._pezPorBioma(isla?.bioma);
     const bounds = this.physics.world.bounds;
+    const clampX = (v) => Phaser.Math.Clamp(v, bounds.x + 40, bounds.x + bounds.width - 40);
+    const clampY = (v) => Phaser.Math.Clamp(v, bounds.y + 40, bounds.y + bounds.height - 40);
 
-    const radio = Phaser.Math.Between(60, 140);
-    const ang = Phaser.Math.FloatBetween(0, Math.PI * 2);
-    const x = Phaser.Math.Clamp(isla.x + Math.cos(ang) * radio, bounds.x + 40, bounds.x + bounds.width - 40);
-    const y = Phaser.Math.Clamp(isla.y + Math.sin(ang) * radio, bounds.y + 40, bounds.y + bounds.height - 40);
+    let x = clampX(isla.x);
+    let y = clampY(isla.y);
+
+    // Busca una posición cercana que esté sobre mar (zona azul del mapa)
+    for (let intento = 0; intento < 30; intento++) {
+      const radio = Phaser.Math.Between(80, 180);
+      const ang = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      const candX = clampX(isla.x + Math.cos(ang) * radio);
+      const candY = clampY(isla.y + Math.sin(ang) * radio);
+
+      if (this._esAgua(candX, candY)) {
+        x = candX;
+        y = candY;
+        break;
+      }
+    }
+
+    // Fallback: busca agua en un radio fijo alrededor de la isla si los intentos aleatorios fallan
+    if (!this._esAgua(x, y)) {
+      const hallada = this._buscarAguaCercana(isla.x, isla.y, 220, clampX, clampY);
+      if (hallada) {
+        x = hallada.x;
+        y = hallada.y;
+      }
+    }
+
+    // Segundo fallback: prueba posiciones globales aleatorias hasta encontrar mar
+    if (!this._esAgua(x, y)) {
+      for (let i = 0; i < 80; i++) {
+        const candX = clampX(Phaser.Math.Between(bounds.x + 20, bounds.x + bounds.width - 20));
+        const candY = clampY(Phaser.Math.Between(bounds.y + 20, bounds.y + bounds.height - 20));
+        if (this._esAgua(candX, candY)) {
+          x = candX;
+          y = candY;
+          break;
+        }
+      }
+    }
 
     return {
       id: `fish_${Date.now()}_${Math.random().toString(16).slice(2, 6)}`,
@@ -1486,6 +1527,38 @@ this.uiLayer.add(btnRegenIslas);
     if (roll < 0.55) return dist.principal;
     if (roll < 0.85) return Phaser.Utils.Array.GetRandom(dist.comunes);
     return Phaser.Utils.Array.GetRandom(dist.raros);
+  }
+
+  _esAgua(x, y) {
+    const tex = this.textures.get("world");
+    if (!tex) return true;
+
+    const px = Math.floor(x - (this.worldOffsetX || 0));
+    const py = Math.floor(y);
+
+    if (px < 0 || py < 0 || px >= (this.worldPixelWidth || 0) || py >= (this.worldPixelHeight || 0)) {
+      return false;
+    }
+
+    const color = tex.getPixel(px, py);
+    if (!color) return false;
+
+    return color.b > color.r + 18 && color.b > color.g + 18 && color.b > 60;
+  }
+
+  _buscarAguaCercana(xCentro, yCentro, radioMax, clampX, clampY) {
+    const pasos = 18;
+    for (let r = 60; r <= radioMax; r += 40) {
+      for (let i = 0; i < pasos; i++) {
+        const ang = (Math.PI * 2 * i) / pasos;
+        const cx = clampX(xCentro + Math.cos(ang) * r);
+        const cy = clampY(yCentro + Math.sin(ang) * r);
+        if (this._esAgua(cx, cy)) {
+          return { x: cx, y: cy };
+        }
+      }
+    }
+    return null;
   }
 
   _dibujarSpotsPesca(spots) {
