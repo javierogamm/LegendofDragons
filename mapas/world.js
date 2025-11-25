@@ -339,6 +339,9 @@ if(window.teleportDestino){
     this.jugador.body.setAllowGravity(false);
     this.worldLayer.add(this.jugador);
 
+    // Desplazamiento de flotación (evita NaN en el primer update)
+    this.flotacionOffset = 0;
+
     this.cameras.main.startFollow(this.jugador, true, 0.15, 0.15);
     this.cameras.main.setBackgroundColor("#000");
     this.cameras.main.setZoom(zoom);
@@ -1713,7 +1716,8 @@ if (vx !== 0 || vy !== 0) {
     this.jugador.setVelocity(vx, vy);
     if(vx !== 0) this.jugador.setFlipX(vx < 0);
 // Aplicar desplazamiento visual sin tocar la física
-this.jugador.y += this.flotacionOffset * this.game.loop.delta / 1000;
+const flotOffset = typeof this.flotacionOffset === "number" ? this.flotacionOffset : 0;
+this.jugador.y += flotOffset * this.game.loop.delta / 1000;
     const px = (this.jugador.x - this.physics.world.bounds.x) * this.escalaMiniX;
     const py = this.jugador.y * this.escalaMiniY;
     this.minimapPlayer.setPosition(px, py);
