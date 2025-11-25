@@ -751,6 +751,13 @@ trigger(eventKey, extraData = {}) {
   }
 
   affected.forEach(m => {
+    const condicionCumplida = typeof m.condition === "function" ? m.condition(extraData) : true;
+
+    if (!condicionCumplida) {
+      console.log(`⏳ Misión todavía no cumple requisitos: ${m.title}`);
+      return;
+    }
+
     m.state = "ready";
     console.log(`📜 Misión lista: ${m.title}`);
     this.showPopup("Misión completada", `${m.title} — Ahora puedes entregarla desde el HUD.`);
