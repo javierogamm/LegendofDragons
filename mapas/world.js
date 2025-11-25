@@ -55,10 +55,17 @@ class SceneWorld extends Phaser.Scene {
     this.load.image("huevoroca","assets/inventario/huevoroca.png");
       this.load.image("huevoagua","assets/inventario/huevoagua.png");
        this.load.image("huevofuego","assets/inventario/huevofuego.png");
-        this.load.image("huevotrueno","assets/inventario/huevotrueno.png");
+    this.load.image("huevotrueno","assets/inventario/huevotrueno.png");
          this.load.image("huevomisterio","assets/inventario/huevomisterio.png");
          this.load.image("huevostriker","assets/inventario/huevostriker.png");
-  
+
+    // 🎣 Iconos de peces reutilizados desde inventario
+    const peces = ["pezagua", "pezroca", "pezfuego", "peztrueno", "pezmisterio", "pezstriker"];
+    peces.forEach(key => {
+      const ruta = `assets/inventario/${key}MED.png`;
+      if (!this.textures.exists(key)) this.load.image(key, ruta);
+    });
+
   }
 
   create(data){
@@ -335,6 +342,29 @@ if(window.teleportDestino){
     this.keys = this.input.keyboard.addKeys("W,A,S,D,E");
     this.velBase = 100;
 
+    // 🎣 Configuración compartida para eventos de pesca
+    this.fishNames = {
+      pezagua: "Pez gélido",
+      pezroca: "Pez pétreo",
+      pezfuego: "Pez ardiente",
+      peztrueno: "Pez dorado",
+      pezmisterio: "Pez púrpura",
+      pezstriker: "Pez irisado"
+    };
+
+    this.fishDistribucionPorBioma = {
+      volcan:      { principal:"pezfuego",  comunes:["pezroca","peztrueno"], raros:["pezstriker","pezmisterio","pezagua"] },
+      jungle:      { principal:"pezstriker",comunes:["pezmisterio","pezagua"], raros:["pezfuego","pezroca","peztrueno"] },
+      helado:      { principal:"pezagua",   comunes:["pezmisterio","pezstriker"], raros:["pezfuego","pezroca","peztrueno"] },
+      cuevadragon: { principal:"pezmisterio",comunes:["pezagua","pezroca"],    raros:["pezfuego","peztrueno","pezstriker"] },
+      desert:      { principal:"pezroca",   comunes:["peztrueno","pezfuego"],  raros:["pezstriker","pezmisterio","pezagua"] },
+      pantano:     { principal:"pezmisterio",comunes:["pezstriker","pezagua"], raros:["pezfuego","pezroca","peztrueno"] },
+      pradera:     { principal:"peztrueno", comunes:["pezstriker","pezagua"],  raros:["pezfuego","pezroca","pezmisterio"] },
+      volante2:    { principal:"pezstriker",comunes:["peztrueno","pezmisterio"], raros:["pezagua","pezfuego","pezroca"] },
+      desert4:     { principal:"pezroca",   comunes:["pezfuego","peztrueno"],  raros:["pezagua","pezmisterio","pezstriker"] },
+      forest:      { principal:"pezagua",   comunes:["pezmisterio","pezstriker"], raros:["pezfuego","pezroca","peztrueno"] }
+    };
+
 // ===== ISLAS DESDE IslaWorld =====
 
 // 🧭 Restaurar o generar seed del mundo
@@ -467,6 +497,9 @@ this.physics.add.overlap(this.jugador, icon, () => {
         this.worldLayer.add(check);
       }
     });
+
+    this.islasRenderizadas = islands;
+    this._initFishingSpots();
 
 // === MONOLITOS GLOBALES (aparecen en el WORLD directamente) ===
 this.monolitos = [];
@@ -1390,6 +1423,140 @@ this.uiLayer.add(btnRegenIslas);
 
 
   } // ← cierra create()
+
+
+  // =========================================
+  // 🎣 Bancos de peces temporales en el mapa
+  // =========================================
+  _initFishingSpots() {
+    if (!window.__RUNTIME_STATE) window.__RUNTIME_STATE = {};
+    this.fishingSpotsVisuals = [];
+    this._refreshFishingSpots();
+
+    if (typeof Calendario?.onAvanzarDia === "function") {
+      if (this._offCalendarioPesca) this._offCalendarioPesca();
+      this._offCalendarioPesca = Calendario.onAvanzarDia(() => this._refreshFishingSpots());
+    }
+  }
+
+  _refreshFishingSpots() {
+    const runtime = window.__RUNTIME_STATE || {};
+    const hoy = this._diaAbsoluto();
+    const activos = (runtime.fishingSpots || []).filter(s => s.expiresDay > hoy && !s.collected);
+
+    while (activos.length < 10) {
+      activos.push(this._crearSpotPesca(hoy));
+    }
+
+    runtime.fishingSpots = activos;
+    window.__RUNTIME_STATE = runtime;
+
+    this._dibujarSpotsPesca(activos);
+  }
+
+  _crearSpotPesca(hoy) {
+    const listaIslas = (this.islasRenderizadas && this.islasRenderizadas.length > 0)
+      ? this.islasRenderizadas
+      : IslaWorld.list();
+
+    const isla = Phaser.Utils.Array.GetRandom(listaIslas);
+    const fishKey = this._pezPorBioma(isla?.bioma);
+    const bounds = this.physics.world.bounds;
+
+    const radio = Phaser.Math.Between(60, 140);
+    const ang = Phaser.Math.FloatBetween(0, Math.PI * 2);
+    const x = Phaser.Math.Clamp(isla.x + Math.cos(ang) * radio, bounds.x + 40, bounds.x + bounds.width - 40);
+    const y = Phaser.Math.Clamp(isla.y + Math.sin(ang) * radio, bounds.y + 40, bounds.y + bounds.height - 40);
+
+    return {
+      id: `fish_${Date.now()}_${Math.random().toString(16).slice(2, 6)}`,
+      x,
+      y,
+      islandId: isla?.islandId,
+      bioma: isla?.bioma,
+      fishKey,
+      expiresDay: hoy + 10,
+      collected: false
+    };
+  }
+
+  _pezPorBioma(bioma) {
+    const dist = this.fishDistribucionPorBioma[bioma] || this.fishDistribucionPorBioma.jungle;
+    const roll = Math.random();
+    if (roll < 0.55) return dist.principal;
+    if (roll < 0.85) return Phaser.Utils.Array.GetRandom(dist.comunes);
+    return Phaser.Utils.Array.GetRandom(dist.raros);
+  }
+
+  _dibujarSpotsPesca(spots) {
+    if (this.fishingSpotsVisuals?.length) {
+      this.fishingSpotsVisuals.forEach(v => { v.icon.destroy(); v.txt.destroy(); });
+      this.fishingSpotsVisuals = [];
+    }
+
+    spots.forEach(spot => {
+      const icon = this.physics.add.image(spot.x, spot.y, spot.fishKey)
+        .setScale(0.45)
+        .setInteractive()
+        .setDepth(12);
+
+      const txt = this.add.text(spot.x, spot.y + 28, `Banco de ${this.fishNames[spot.fishKey] || spot.fishKey}`, {
+        fontSize: "14px",
+        fill: "#bde6ff",
+        backgroundColor: "#000000b0",
+        padding: { left: 6, right: 6, top: 2, bottom: 2 },
+        fontFamily: "'Cinzel Decorative', serif"
+      }).setOrigin(0.5, 0).setDepth(13);
+
+      this.worldLayer.add(icon);
+      this.worldLayer.add(txt);
+
+      this.physics.add.overlap(this.jugador, icon, () => this._cobrarSpotPesca(spot.id), null, this);
+
+      this.fishingSpotsVisuals.push({ icon, txt, id: spot.id });
+    });
+  }
+
+  _cobrarSpotPesca(idSpot) {
+    const runtime = window.__RUNTIME_STATE || {};
+    const spot = (runtime.fishingSpots || []).find(s => s.id === idSpot);
+    if (!spot || spot.collected) return;
+
+    const cantidad = Phaser.Math.Between(1, 3);
+    if (typeof window.pushItem === "function") {
+      window.pushItem(this.fishNames[spot.fishKey] || spot.fishKey, cantidad, spot.fishKey);
+    }
+
+    spot.collected = true;
+    this._toastPesca(`🎣 ${cantidad}x ${this.fishNames[spot.fishKey] || spot.fishKey}`);
+    this._refreshFishingSpots();
+  }
+
+  _toastPesca(texto) {
+    const aviso = this.add.text(this.sys.game.config.width / 2, 90, texto, {
+      fontSize: "22px",
+      fontFamily: "'Cinzel Decorative', serif",
+      fill: "#7fffd4",
+      backgroundColor: "#001a26",
+      padding: { left: 12, right: 12, top: 6, bottom: 6 }
+    }).setOrigin(0.5).setDepth(2200).setScrollFactor(0);
+
+    this.tweens.add({
+      targets: aviso,
+      alpha: { from: 1, to: 0 },
+      y: 60,
+      duration: 2200,
+      onComplete: () => aviso.destroy()
+    });
+  }
+
+  _diaAbsoluto() {
+    if (typeof Calendario === "undefined" || !Calendario._state) return 0;
+    const { dia = 1, mes = 1, anio = 1 } = Calendario._state;
+    const DIAS_POR_MES = 25;
+    const MESES_POR_ANIO = 12;
+    return (anio - 1) * DIAS_POR_MES * MESES_POR_ANIO + (mes - 1) * DIAS_POR_MES + dia;
+  }
 
 
 

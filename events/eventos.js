@@ -405,16 +405,16 @@ case "bancopeces": {
 
   // 🎣 Distribución temática por bioma (igual que antes)
   const distribuciones = {
-    volcan:      { principal: "pezfuego", comunes: ["pezroca", "peztrueno"], raros: ["pezirisado", "pezmisterio", "pezagua"] },
-    jungle:      { principal: "pezirisado", comunes: ["pezmisterio", "pezagua"], raros: ["pezfuego", "pezroca", "peztrueno"] },
-    helado:      { principal: "pezagua", comunes: ["pezmisterio", "pezirisado"], raros: ["pezfuego", "pezroca", "peztrueno"] },
-    cuevadragon: { principal: "pezmisterio", comunes: ["pezagua", "pezroca"], raros: ["pezfuego", "peztrueno", "pezirisado"] },
-    desert:      { principal: "pezroca", comunes: ["peztrueno", "pezfuego"], raros: ["pezirisado", "pezmisterio", "pezagua"] },
-    pantano:     { principal: "pezmisterio", comunes: ["pezirisado", "pezagua"], raros: ["pezfuego", "pezroca", "peztrueno"] },
-    pradera:     { principal: "peztrueno", comunes: ["pezirisado", "pezagua"], raros: ["pezfuego", "pezroca", "pezmisterio"] },
-    volante2:    { principal: "pezirisado", comunes: ["peztrueno", "pezmisterio"], raros: ["pezagua", "pezfuego", "pezroca"] },
-    desert4:     { principal: "pezroca", comunes: ["pezfuego", "peztrueno"], raros: ["pezagua", "pezmisterio", "pezirisado"] },
-    forest:      { principal: "pezagua", comunes: ["pezmisterio", "pezirisado"], raros: ["pezfuego", "pezroca", "peztrueno"] }
+    volcan:      { principal: "pezfuego", comunes: ["pezroca", "peztrueno"], raros: ["pezstriker", "pezmisterio", "pezagua"] },
+    jungle:      { principal: "pezstriker", comunes: ["pezmisterio", "pezagua"], raros: ["pezfuego", "pezroca", "peztrueno"] },
+    helado:      { principal: "pezagua", comunes: ["pezmisterio", "pezstriker"], raros: ["pezfuego", "pezroca", "peztrueno"] },
+    cuevadragon: { principal: "pezmisterio", comunes: ["pezagua", "pezroca"], raros: ["pezfuego", "peztrueno", "pezstriker"] },
+    desert:      { principal: "pezroca", comunes: ["peztrueno", "pezfuego"], raros: ["pezstriker", "pezmisterio", "pezagua"] },
+    pantano:     { principal: "pezmisterio", comunes: ["pezstriker", "pezagua"], raros: ["pezfuego", "pezroca", "peztrueno"] },
+    pradera:     { principal: "peztrueno", comunes: ["pezstriker", "pezagua"], raros: ["pezfuego", "pezroca", "pezmisterio"] },
+    volante2:    { principal: "pezstriker", comunes: ["peztrueno", "pezmisterio"], raros: ["pezagua", "pezfuego", "pezroca"] },
+    desert4:     { principal: "pezroca", comunes: ["pezfuego", "peztrueno"], raros: ["pezagua", "pezmisterio", "pezstriker"] },
+    forest:      { principal: "pezagua", comunes: ["pezmisterio", "pezstriker"], raros: ["pezfuego", "pezroca", "peztrueno"] }
   };
 
   const dist = distribuciones[islaTipo] || distribuciones.jungle;
@@ -426,7 +426,7 @@ case "bancopeces": {
     pezroca: "Pez pétreo",
     peztrueno: "Pez dorado",
     pezfuego: "Pez ardiente",
-    pezirisado: "Pez irisado"
+    pezstriker: "Pez irisado"
   };
 
   // 🎯 Al menos 2 peces del tipo principal

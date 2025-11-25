@@ -59,11 +59,11 @@ window.storyMode = {
   state: "locked",
   rewards: [
     { key: "Monedas", nombre: "Monedas", cantidad: 1000 },
-    { key: "pezagua", nombre: "Pez de Agua", cantidad: 1 },
-    { key: "pezroca", nombre: "Pez de Roca", cantidad: 1 },
-    { key: "pezfuego", nombre: "Pez de Fuego", cantidad: 1 },
-    { key: "peztrueno", nombre: "Pez de Trueno", cantidad: 1 },
-    { key: "pezmisterio", nombre: "Pez Misterioso", cantidad: 1 }
+    { key: "pezagua", nombre: "Pez gélido", cantidad: 1 },
+    { key: "pezroca", nombre: "Pez pétreo", cantidad: 1 },
+    { key: "pezfuego", nombre: "Pez ardiente", cantidad: 1 },
+    { key: "peztrueno", nombre: "Pez dorado", cantidad: 1 },
+    { key: "pezmisterio", nombre: "Pez púrpura", cantidad: 1 }
   ]
 },
 {
