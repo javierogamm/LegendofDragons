@@ -414,6 +414,21 @@ console.log("💾 Misiones normales omitidas (reiniciadas).");
     if (data.cacheIslas) {
       RUNTIME.cacheIslas = data.cacheIslas;
       console.log("♻️ Cache de islas restaurada desde guardado:", RUNTIME.cacheIslas.length, "islas");
+
+      // 🐟 Validar que las islas tengan eventos de pesca (bancopeces)
+      const tienePeces = RUNTIME.cacheIslas.some(isla =>
+        isla.eventos && isla.eventos.some(e =>
+          e.clase === "bancopeces" || e.tipo?.includes("bancopeces")
+        )
+      );
+
+      if (!tienePeces && RUNTIME.cacheIslas.length > 0) {
+        console.warn("⚠️ Cache de islas sin peces detectada (save antiguo). Invalidando caché...");
+        RUNTIME.cacheIslas = null;
+        RUNTIME.cacheParams = null;
+      } else if (tienePeces) {
+        console.log("✅ Cache de islas válida con eventos de pesca.");
+      }
     }
 
     // 🧩 Sincronizar eventos completados y meta global (compatibilidad con saves antiguos)
