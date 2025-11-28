@@ -104,6 +104,8 @@ onAvanzarDia(callback) {
 clearAllListeners() {
   console.log("🧹 Limpiando todos los listeners del calendario...");
   this._listeners = [];
+  // Resetear banderas de control para permitir re-registro
+  if (window._mp_listenerOn) window._mp_listenerOn = false;
 },
 
   };
