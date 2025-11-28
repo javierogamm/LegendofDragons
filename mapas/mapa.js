@@ -431,6 +431,9 @@ fontSize: "18px",
 
   // 🧭 Listener que se ejecuta cada vez que pasa un día
   const off = Calendario.onAvanzarDia(() => {
+    // ✅ Solo ejecutar si estamos en la escena SceneMapa
+    if (!this.scene.isActive("SceneMapa")) return;
+
     if (!window.repelenteActivo) return;
 
     window.repelenteActivo.diasRestantes--;
