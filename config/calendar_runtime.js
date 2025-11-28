@@ -45,7 +45,13 @@
 
   // 🔔 Notificar a todos los listeners (por ejemplo, repelente)
   if (Calendario._listeners) {
-    Calendario._listeners.forEach(fn => fn(RUNTIME));
+    Calendario._listeners.forEach(fn => {
+      try {
+        fn(RUNTIME);
+      } catch (error) {
+        console.warn("⚠️ Error en listener del calendario:", error);
+      }
+    });
   }
 }
 
@@ -94,8 +100,12 @@ onAvanzarDia(callback) {
   return () => {
     this._listeners = this._listeners.filter(fn => fn !== callback);
   };
-},  
-  
+},
+clearAllListeners() {
+  console.log("🧹 Limpiando todos los listeners del calendario...");
+  this._listeners = [];
+},
+
   };
   /***** =========================
  * INCUBACIÓN DE HUEVOS

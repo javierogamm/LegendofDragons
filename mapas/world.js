@@ -65,6 +65,11 @@ class SceneWorld extends Phaser.Scene {
 
 window.sceneWorld = this;
 
+// 🧹 Limpiar listeners antiguos del calendario para evitar errores
+if (window.Calendario && typeof Calendario.clearAllListeners === "function") {
+  Calendario.clearAllListeners();
+}
+
 // 🩹 FIX: liberar dragones atascados en misiones pasivas al cargar partida
 if (Array.isArray(window.dragonesJugador)) {
   const misiones = Array.isArray(window.misionesPasivas) ? window.misionesPasivas : [];
