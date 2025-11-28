@@ -28,8 +28,8 @@ if (window.dragones) {
     const baseName = d.name.trim().replace(/\s+/g, " ");
 
     // 🔹 Generar las posibles rutas según capitalización
-    const rutaNormal = "assets/dragones/" + baseName + ".png";
-    const rutaMinus  = "assets/dragones/" + baseName.charAt(0).toLowerCase() + baseName.slice(1) + ".png";
+    const rutaNormal = "assets/Dragones/" + baseName + ".png";
+    const rutaMinus  = "assets/Dragones/" + baseName.charAt(0).toLowerCase() + baseName.slice(1) + ".png";
 
     // 🔹 Key tal cual (respetando nombre original del dragón)
     const key = d.name;

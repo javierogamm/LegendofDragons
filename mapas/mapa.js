@@ -50,7 +50,7 @@ class SceneMapa extends Phaser.Scene {
     this.load.image("desert4","assets/mapas/desert4.png");
     this.load.image("forest","assets/mapas/forest.png");
     // Jugador
-    this.load.image("jugador", dragon1 ? dragon1.mini : "assets/minis/player.png");
+    this.load.image("jugador", dragon1 ? dragon1.mini : "assets/Minis/player.png");
 
     // Minis de dragones
     dragones.forEach(d=>{
