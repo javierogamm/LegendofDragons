@@ -23,7 +23,7 @@ class SceneWorld extends Phaser.Scene {
     this.load.image("desertICON", "assets/mapas/desertICONO.png");
     this.load.image("pantanoICON", "assets/mapas/forestICONO.png");
     this.load.image("praderaICON", "assets/mapas/praderasICONO.png");
-    this.load.image("frozencrownICON", "assets/Mapas/frozencrownICONO.png");
+    this.load.image("frozencrownICON", "assets/mapas/frozencrownICONO.png");
     this.load.image("scorchiaICON", "assets/mapas/scorchiaICONO.png");
     this.load.image("volante2ICON", "assets/mapas/volante2ICONO.png");
     this.load.image("desert4ICON",  "assets/mapas/desert4ICONO.png");

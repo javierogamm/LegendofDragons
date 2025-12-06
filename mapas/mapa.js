@@ -39,12 +39,12 @@ class SceneMapa extends Phaser.Scene {
     this.load.image("desert","assets/mapas/desert.png");
     this.load.image("pantano","assets/mapas/forest.png");
     this.load.image("pradera","assets/mapas/praderas.png");
-    this.load.image("frozencrown","assets/Mapas/frozencrown.png");
-    this.load.image("scorchia","assets/Mapas/scorchia.png");
+    this.load.image("frozencrown","assets/mapas/frozencrown.png");
+    this.load.image("scorchia","assets/mapas/scorchia.png");
 
-    this.load.image("jadeisland","assets/Mapas/jadeisland.png");
-    this.load.image("stormcloud","assets/Mapas/stormcloud.png");
-    this.load.image("hellfire","assets/Mapas/hellfire.png");
+    this.load.image("jadeisland","assets/mapas/jadeisland.png");
+    this.load.image("stormcloud","assets/mapas/stormcloud.png");
+    this.load.image("hellfire","assets/mapas/hellfire.png");
 
     this.load.image("volante2","assets/mapas/volante2.png");
     this.load.image("desert4","assets/mapas/desert4.png");
